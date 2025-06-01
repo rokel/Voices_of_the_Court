@@ -1230,11 +1230,9 @@ export class Conversation{
         if (characterNames.length > 0) {
             // Escape names for regex and join with |
             const namePattern = characterNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-
-            // Regex to find name at the start, followed by any characters up to a comma or colon.
-            // This is to strip prefixes like "Name:", "Name,", or "Name, doing something:".
-            const prefixRegex = new RegExp(`^\\s*\\b(${namePattern})\\b.*?[,:]`, 'i');
-
+            // Regex to find name at the start, immediately followed by a colon or comma (label-style prefix).
+            // This strips prefixes like "Name:" or "Name," but not prose that begins with the character's name.
+            const prefixRegex = new RegExp(`^\\s*\\b(${namePattern})\\b\\s*[,:]`, 'i');
             const match = content.match(prefixRegex);
             if (match) {
                 console.log(`Found and stripping prefix: "${match[0]}"`);
