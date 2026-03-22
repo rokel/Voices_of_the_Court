@@ -121,10 +121,31 @@ describe('parseLog – relatives parsing', () => {
         });
     });
 
+    describe('birthTotalDays propagation', () => {
+        it('populates Eoforhild.birthTotalDays from Ronwald sibling log', () => {
+            // Eoforhild appears as Ronwald's sibling with birthTotalDays 308443
+            expect(gameData!.characters.get(EOFORHILD_ID)!.birthTotalDays).toBe(308443);
+        });
+
+        it('populates Ronwald.birthTotalDays from Eoforhild sibling log', () => {
+            // Ronwald appears as Eoforhild's sibling with birthTotalDays 309886
+            expect(gameData!.characters.get(RONWALD_ID)!.birthTotalDays).toBe(309886);
+        });
+
+        it('stores birthTotalDays on the Relative entry', () => {
+            const eoforhild = gameData!.characters.get(EOFORHILD_ID)!;
+            const heardr = eoforhild.relatives.find(r => r.id === HEARDR_ID)!;
+            expect(heardr.birthTotalDays).toBe(307699);
+        });
+    });
+
     describe('getRelativesDescription()', () => {
+        // game totalDays from the sample log init line
+        const GAME_TOTAL_DAYS = 316907;
+
         it('returns a non-empty string for Eoforhild', () => {
             const eoforhild = gameData!.characters.get(EOFORHILD_ID)!;
-            const desc = eoforhild.getRelativesDescription();
+            const desc = eoforhild.getRelativesDescription(GAME_TOTAL_DAYS);
             expect(desc).toBeTruthy();
             expect(desc).toContain('Parents');
             expect(desc).toContain('Siblings');
@@ -132,9 +153,27 @@ describe('parseLog – relatives parsing', () => {
 
         it('includes sibling names in the description', () => {
             const eoforhild = gameData!.characters.get(EOFORHILD_ID)!;
-            const desc = eoforhild.getRelativesDescription();
+            const desc = eoforhild.getRelativesDescription(GAME_TOTAL_DAYS);
             expect(desc).toContain('Heardræd');
             expect(desc).toContain('Æscmann');
+        });
+
+        it('labels Heardræd as older brother and Ronwald as younger brother', () => {
+            const eoforhild = gameData!.characters.get(EOFORHILD_ID)!;
+            const desc = eoforhild.getRelativesDescription(GAME_TOTAL_DAYS);
+            // Heardræd born 4 Jan 843 (307699), Eoforhild born 18 Jan 845 (308443) → older
+            expect(desc).toContain('older brother Heardræd');
+            // Ronwald born 1 Jan 849 (309886) → younger
+            expect(desc).toContain('younger brother');
+        });
+
+        it('includes calculated ages for living relatives', () => {
+            const eoforhild = gameData!.characters.get(EOFORHILD_ID)!;
+            const desc = eoforhild.getRelativesDescription(GAME_TOTAL_DAYS);
+            // Heardræd: floor((316907-307699)/365.25) = 25
+            expect(desc).toContain('age 25');
+            // Ronwald: floor((316907-309886)/365.25) = 19
+            expect(desc).toContain('age 19');
         });
     });
 });
