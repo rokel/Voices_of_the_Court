@@ -1418,7 +1418,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         if (config.diaryGenerationChance > 0 && Math.random() < (config.diaryGenerationChance / 100)) {
             const aiCharacter = gameData.getCharacter(replyLetter.sender.id);
             if (aiCharacter) {
-                const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, aiCharacter, replyLetter.content, 'received');
+                const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, aiCharacter, latestLetter.content, 'received');
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(aiCharacter.id), newEntry);
                     const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry, gameData);
