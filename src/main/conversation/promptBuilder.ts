@@ -671,11 +671,17 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
 export function createMemoryString(conv: Conversation, prompts: any): string{
     let allMemories: Memory[] = [];
 
+    const aiChar = conv.gameData.characters.get(conv.gameData.aiID)!;
+    // Always include the AI character's own memories
+    allMemories = allMemories.concat(aiChar.memories);
+    // Include memories from other characters only if they reference the AI character
     conv.gameData.characters.forEach((value, key) => {
-        allMemories = allMemories.concat(value!.memories);
-    })
-    // allMemories =allMemories.concat(conv.gameData.characters.get(conv.gameData.playerID)!.memories);
-    // allMemories = allMemories.concat(conv.gameData.characters.get(conv.gameData.aiID)!.memories);
+        if (key === conv.gameData.aiID) return;
+        const referencingMemories = value!.memories.filter(m =>
+            m.desc.includes(aiChar.firstName) || m.desc.includes(aiChar.shortName)
+        );
+        allMemories = allMemories.concat(referencingMemories);
+    });
 
     allMemories.sort((a, b) => (b.relevanceWeight - a.relevanceWeight));
 
