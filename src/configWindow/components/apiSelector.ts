@@ -805,11 +805,7 @@ class ApiSelector extends HTMLElement{
             }
         };
 
-        // 发送所有API配置到主进程
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'all', allConfigs);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'all', allConfigs);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'all', allConfigs);
-
+        ipcRenderer.send('api-config-change', this.confID, 'all', allConfigs);
         console.log('All API configurations saved and sent to main process');
     }
 
