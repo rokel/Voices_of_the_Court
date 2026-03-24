@@ -1450,10 +1450,30 @@ mark.current-highlight {
     color: #ffd700;
 }
 
+#diary-manager-container .summary-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 5px;
+}
+
 #diary-manager-container .summary-date {
     font-weight: bold;
     color: #cca43b;
-    margin-bottom: 5px;
+}
+
+#diary-manager-container .diary-delete-btn {
+    padding: 2px 7px;
+    font-size: 12px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-left: 8px;
+    opacity: 0.6;
+}
+
+#diary-manager-container .summary-item:hover .diary-delete-btn,
+#diary-manager-container .summary-item.selected .diary-delete-btn {
+    opacity: 1;
 }
 
 #diary-manager-container .summary-content {

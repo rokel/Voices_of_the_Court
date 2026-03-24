@@ -379,15 +379,21 @@ function renderDiaryList() {
                 <input type="text" id="diary-edit-participants-${index}" value="${(entry.participants || []).join(', ')}" placeholder="Participants (comma-separated IDs)">
                 <textarea id="diary-edit-content-${index}" rows="5">${entry.content || ''}</textarea>
                 <div class="edit-controls">
+                    <button class="btn btn-danger delete-inplace-btn" data-i18n="diary_manager.delete_btn">Delete</button>
                     <button class="btn cancel-inplace-btn" data-i18n="summary_manager.close_btn">Close</button>
                     <button class="btn save-inplace-btn" data-i18n="summary_manager.save_btn" disabled>Save</button>
                 </div>
             `;
-            
+
             diaryList.appendChild(editItem);
 
             editItem.querySelector('.save-inplace-btn')?.addEventListener('click', () => saveInPlaceEdit(index));
             editItem.querySelector('.cancel-inplace-btn')?.addEventListener('click', () => cancelInPlaceEdit());
+            editItem.querySelector('.delete-inplace-btn')?.addEventListener('click', () => {
+                cancelInPlaceEdit();
+                currentDiaryIndex = index;
+                deleteSelectedDiaryEntry();
+            });
 
             const dateInput = editItem.querySelector(`#diary-edit-date-${index}`) as HTMLInputElement;
             const contentInput = editItem.querySelector(`#diary-edit-content-${index}`) as HTMLTextAreaElement;
@@ -418,13 +424,21 @@ function renderDiaryList() {
             const contentHTML = highlightRegex ? contentText.replace(highlightRegex, '<mark>$1</mark>') : contentText;
             
             item.innerHTML = `
-                <div class="summary-date">${headerHTML}</div>
+                <div class="summary-item-header">
+                    <div class="summary-date">${headerHTML}</div>
+                    <button class="diary-delete-btn btn btn-danger" title="Delete entry">&#x2715;</button>
+                </div>
                 <div class="summary-meta">${locationHTML} | ${sceneHTML}</div>
                 <div class="summary-meta">Participants: ${participantsHTML}</div>
                 <div class="summary-content">${contentHTML}</div>
             `;
             item.addEventListener('click', () => selectDiary(index));
             item.addEventListener('dblclick', () => enterEditMode(index));
+            item.querySelector('.diary-delete-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                currentDiaryIndex = index;
+                deleteSelectedDiaryEntry();
+            });
             diaryList.appendChild(item);
         }
     });
