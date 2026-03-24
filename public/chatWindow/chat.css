@@ -308,6 +308,21 @@ html{
     padding-left: 1%;
     padding-right: 1%;
     font-size: 110%;
+    white-space: break-spaces;
+}
+
+.message p {
+    margin: 0.1em;
+    padding: 0.5em;
+    max-width: 80ch;
+    text-align: justify;
+}
+
+.message-content {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
 .chat-input{

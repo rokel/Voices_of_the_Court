@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 const DOMPurify = require('dompurify');
 
 const sanitizeConfig = {
-    ALLOWED_TAGS: ['em', 'strong'],
+    ALLOWED_TAGS: ['em', 'strong', 'b', 'br', 'p'],
     KEEP_CONTENT: true,
   };
 
@@ -213,7 +213,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     const contentSpan = document.createElement('span');
     contentSpan.className = 'message-content';
     // Use parseInline for content, but don't sanitize yet to allow editing raw text
-    contentSpan.innerHTML = await marked.parseInline(message.content);
+    contentSpan.innerHTML = await marked.parse(message.content, {breaks: true});
 
 
     messageDiv.appendChild(nameSpan);
