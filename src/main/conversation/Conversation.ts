@@ -606,54 +606,6 @@ export class Conversation{
         this.isGenerating = true;
         this.abortController = new AbortController();
         try {
-            // Ensure NPC queue is filled before determining targets.
-            this.fillNpcQueue();
-            const targetedCharacters = await this.determineTargetedCharacters();
-
-            const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
-
-            // Determine if we should check for actions immediately, before an AI's conversational reply.
-            const userMessages = this.messages.filter(m => m.role === 'user');
-            const isFirstUserTurn = userMessages.length === 1 && lastMessage?.role === 'user';
-            const isDirectActionSyntax = lastMessage?.role === 'user' && (/\[(.*?)\]/.test(lastMessage.content) || /\*(.*?)\*/.test(lastMessage.content));
-
-            if (lastMessage && lastMessage.role === 'user' && (isFirstUserTurn || isDirectActionSyntax)) {
-                const reason = isFirstUserTurn ? "first user turn" : "direct action syntax";
-                console.log(`Performing immediate action check due to: ${reason}.`);
-
-                // If multiple targets, pick the first. If none, fallback to main AI.
-                const targetId = targetedCharacters.length > 0 ? targetedCharacters[0].id : this.gameData.aiID;
-                const sourceId = this.gameData.playerID;
-
-                const collectedActions = await checkActions(this, sourceId, targetId);
-
-                // If actions were found, we treat that as the "response" and bypass the normal AI chat reply.
-                if (collectedActions.length > 0) {
-                    console.log('Actions triggered on immediate check. Bypassing conversational reply.');
-                    this.executedActions.set(lastMessage.id!, collectedActions);
-                    this.actionInvolvedCharacterIds.add(sourceId);
-                    this.actionInvolvedCharacterIds.add(targetId);
-                    this.consecutiveActionsCount++;
-                    this.lastActionMessageIndex = this.messages.length - 1;
-
-                    let playerNarrative: Message | null = null;
-                    if (this.config.narrativeEnable) {
-                        playerNarrative = await generateNarrative(this, collectedActions);
-                    }
-
-                    if (playerNarrative) {
-                        this.pushMessage(playerNarrative);
-                    }
-                    this.chatWindow.window.webContents.send('actions-receive', collectedActions, playerNarrative, false);
-
-                    // End generation here since we handled the direct action.
-                    this.isGenerating = false;
-                    return;
-                } else {
-                    console.log('No actions triggered on immediate check. Proceeding with normal AI response.');
-                }
-            }
-
             this.aiToAiTurnLimit = 0;
             console.log('Starting generation of AI messages for all characters.');
 
@@ -678,6 +630,11 @@ export class Conversation{
             const respondedCharacterIds = new Set<number>();
             const allGeneratedMessages: Message[] = [];
             const allTurnActions: ActionResponse[] = [];
+
+            // Ensure NPC queue is filled before determining targets.
+            this.fillNpcQueue();
+            // Determine targeted characters upfront (reused for both action detection and AI response)
+            const targetedCharacters = await this.determineTargetedCharacters();
 
             // If the player's message contains action syntax, check for actions before the AI responds.
             // This ensures detection even if AI generation produces no messages, and avoids the old
