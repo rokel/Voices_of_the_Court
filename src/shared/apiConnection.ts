@@ -495,8 +495,12 @@ export class ApiConnection{
                     // placeholder messages. OpenRouter exposes Gemini through the
                     // chat-completions API, so the native Gemini normalization above
                     // does not protect this path.
-                    const isOpenRouterGemini = this.type === 'openrouter' && /gemini/i.test(this.model);
+                    const isOpenRouterEndpoint = this.type === 'openrouter' || /openrouter\.ai/i.test(this.config.baseUrl || '');
+                    const isOpenRouterGemini = isOpenRouterEndpoint && /gemini/i.test(this.model);
                     const lastMessage = sanitizedMessages[sanitizedMessages.length - 1];
+                    if (isOpenRouterGemini) {
+                        console.debug(`OpenRouter Gemini message roles before final-turn guard: ${sanitizedMessages.map(message => message.role).join(', ')}`);
+                    }
                     if (isOpenRouterGemini && lastMessage?.role === 'assistant' && lastMessage.content?.trim()) {
                         console.warn('OpenRouter Gemini request ended with an assistant turn; appending a user continuation turn.');
                         sanitizedMessages.push({
