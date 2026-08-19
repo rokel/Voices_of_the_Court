@@ -501,8 +501,8 @@ export class ApiConnection{
                     if (isOpenRouterGemini) {
                         console.debug(`OpenRouter Gemini message roles before final-turn guard: ${sanitizedMessages.map(message => message.role).join(', ')}`);
                     }
-                    if (isOpenRouterGemini && lastMessage?.role === 'assistant' && lastMessage.content?.trim()) {
-                        console.warn('OpenRouter Gemini request ended with an assistant turn; appending a user continuation turn.');
+                    if (isOpenRouterGemini && lastMessage?.role !== 'user') {
+                        console.warn(`OpenRouter Gemini request ended with a ${lastMessage?.role || 'missing'} turn; appending a user continuation turn.`);
                         sanitizedMessages.push({
                             role: 'user',
                             content: 'Please continue with the next response.'
