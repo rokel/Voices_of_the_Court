@@ -489,6 +489,22 @@ export class ApiConnection{
                         return cleanMsg;
                     });
 
+                    // Gemini rejects OpenAI-compatible requests whose final non-empty
+                    // turn is an assistant/model turn. This can occur during the
+                    // initial AI-start path when the conversation contains NPC
+                    // placeholder messages. OpenRouter exposes Gemini through the
+                    // chat-completions API, so the native Gemini normalization above
+                    // does not protect this path.
+                    const isOpenRouterGemini = this.type === 'openrouter' && /gemini/i.test(this.model);
+                    const lastMessage = sanitizedMessages[sanitizedMessages.length - 1];
+                    if (isOpenRouterGemini && lastMessage?.role === 'assistant' && lastMessage.content?.trim()) {
+                        console.warn('OpenRouter Gemini request ended with an assistant turn; appending a user continuation turn.');
+                        sanitizedMessages.push({
+                            role: 'user',
+                            content: 'Please continue with the next response.'
+                        });
+                    }
+
                     const requestBody = {
                         model: this.model,
                         messages: sanitizedMessages,
