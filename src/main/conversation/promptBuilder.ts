@@ -671,14 +671,23 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
 export function createMemoryString(conv: Conversation, prompts: any): string{
     let allMemories: Memory[] = [];
 
-    const aiChar = conv.gameData.characters.get(conv.gameData.aiID)!;
+    const aiChar = conv.gameData.characters.get(conv.gameData.aiID);
+    if (!aiChar) {
+        console.warn(`[promptBuilder] Cannot filter memories: AI character ${conv.gameData.aiID} is not available.`);
+        return "";
+    }
+
+    const aiNames = [aiChar.firstName, aiChar.shortName, aiChar.fullName]
+        .filter((name): name is string => Boolean(name && name.trim()))
+        .map(name => name.toLocaleLowerCase());
+
     // Always include the AI character's own memories
     allMemories = allMemories.concat(aiChar.memories);
     // Include memories from other characters only if they reference the AI character
     conv.gameData.characters.forEach((value, key) => {
         if (key === conv.gameData.aiID) return;
         const referencingMemories = value!.memories.filter(m =>
-            m.desc.includes(aiChar.firstName) || m.desc.includes(aiChar.shortName)
+            aiNames.some(name => m.desc.toLocaleLowerCase().includes(name))
         );
         allMemories = allMemories.concat(referencingMemories);
     });
